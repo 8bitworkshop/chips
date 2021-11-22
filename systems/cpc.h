@@ -874,7 +874,7 @@ static bool _cpc_load_sna(cpc_t* sys, const uint8_t* ptr, int num_bytes) {
     }
     memcpy(sys->ram, ptr, dump_num_bytes);
 
-//    z80_reset(&sys->cpu);
+    z80_reset(&sys->cpu);
     z80_set_f(&sys->cpu, hdr->F); z80_set_a(&sys->cpu,hdr->A);
     z80_set_c(&sys->cpu, hdr->C); z80_set_b(&sys->cpu, hdr->B);
     z80_set_e(&sys->cpu, hdr->E); z80_set_d(&sys->cpu, hdr->D);
