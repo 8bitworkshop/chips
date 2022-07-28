@@ -172,3 +172,25 @@ bool machine_cpu_is_stable(c64_t* sys) {
 int machine_get_raster_line(c64_t* sys) {
     return sys->vic.rs.v_count;
 }
+
+void machine_set_mouse(c64_t* sys, int x, int y) {
+    sys->vic.reg.lightpen_xy[0] = x;
+    sys->vic.reg.lightpen_xy[1] = y;
+}
+
+void* machine_get_debug_pointer(c64_t* sys, int index) {
+    switch (index) {
+        case 0: return &sys->cpu;
+        case 1: return &sys->cia_1;
+        case 2: return &sys->cia_2;
+        case 3: return &sys->vic;
+        case 4: return &sys->sid;
+        case 5: return &sys->ram;
+        case 6: return &sys->color_ram;
+        case 7: return &sys->mem_cpu;
+        case 8: return &sys->mem_vic;
+        case 9: return &sys->io_mapped;
+        default: return 0;
+    }
+}
+

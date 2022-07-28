@@ -144,6 +144,7 @@ void machine_key_up(vic20_t* sys, int key_code) {
 }
 
 void machine_load_rom(vic20_t* sys, const uint8_t* ptr, int num_bytes) {
+    // TODO: vic20_insert_rom_cartridge
     vic20_quickload(sys, ptr, num_bytes);
 }
 

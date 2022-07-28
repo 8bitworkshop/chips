@@ -203,6 +203,7 @@ typedef struct {
 
 /* m6581 instance state */
 typedef struct {
+    uint8_t registers[32];
     int sound_hz;
     /* reading a write-only register returns the last value
        written to *any* register for about 0x2000 ticks
@@ -330,6 +331,7 @@ void m6581_init(m6581_t* sid, const m6581_desc_t* desc) {
 
 void m6581_reset(m6581_t* sid) {
     CHIPS_ASSERT(sid);
+    memset(&sid->registers, 0, sizeof(sid->registers));
     sid->bus_value = 0;
     sid->bus_decay = 0x2000;
     for (int i = 0; i < 3; i++) {
@@ -715,6 +717,7 @@ static uint64_t _m6581_read(m6581_t* sid, uint64_t pins) {
 static void _m6581_write(m6581_t* sid, uint64_t pins) {
     uint8_t reg = pins & M6581_ADDR_MASK;
     uint8_t data = M6581_GET_DATA(pins);
+    sid->registers[reg] = data;
     sid->bus_value = data;
     sid->bus_decay = 0x2000;
     switch (reg) {

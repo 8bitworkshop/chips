@@ -32,7 +32,7 @@ console.log(vic20.vic20_display_height(sys));
 console.log('pixels', vic20.machine_get_pixel_buffer(sys));
 
 vic20.machine_tick(sys);
-vic20.vic20_exec(sys, 100000);
+vic20.vic20_exec(sys, 1000000);
 
 const pixels = new Uint8Array(
   vic20.memory.buffer,
