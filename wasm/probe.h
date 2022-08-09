@@ -44,8 +44,12 @@ inline void logProbe(uint32_t x) {
 
 void logClocks(uint16_t clocks) {
     if (clocks) {
-        //TODO: coalesce
-        logProbe(OP_CLOCKS | clocks);
+        // coalesce clocks?
+        if (probebufofs && probebuf[probebufofs-1] < OP_EXECUTE) {
+            probebuf[probebufofs-1] += clocks;
+        } else {
+            logProbe(OP_CLOCKS | clocks);
+        }
     }
 }
 

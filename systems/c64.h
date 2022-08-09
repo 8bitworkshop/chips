@@ -744,6 +744,11 @@ static uint64_t _c64_tick(c64_t* sys, uint64_t pins) {
                     /* CIA-2 (DD00..DDFF) */
                     cia2_pins |= M6526_CS;
                 }
+                if (pins & M6502_RW) {
+                    logIORead(addr, M6502_GET_DATA(pins));
+                } else {
+                    logIOWrite(addr, M6502_GET_DATA(pins));
+                }
             }
             else {
                 mem_access = true;
@@ -881,12 +886,20 @@ static uint64_t _c64_tick(c64_t* sys, uint64_t pins) {
         }
     }
     // log probe data
-    if (pins & M6502_SYNC) logExec(sys->cpu.PC);
+    if (pins & M6502_RDY) logProbe(OP_ILLEGAL | addr); // badline
+    if (sys->cpu.brk_flags) logProbe(OP_INTERRUPT | sys->cpu.brk_flags); // interrupt
+    if (pins & M6502_SYNC) logExec(sys->cpu.PC); // exec instruction
     if (mem_access) {
         if (pins & M6502_RW) {
             logRead(addr, M6502_GET_DATA(pins));
         } else {
             logWrite(addr, M6502_GET_DATA(pins));
+        }
+    } else if (cpu_io_access) {
+        if (pins & M6502_RW) {
+            logIORead(addr, M6502_GET_DATA(pins));
+        } else {
+            logIOWrite(addr, M6502_GET_DATA(pins));
         }
     }
     logClocks(1);
