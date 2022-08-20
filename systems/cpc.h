@@ -385,9 +385,8 @@ void cpc_reset(cpc_t* sys) {
     sys->joy_joymask = 0;
 }
 
-void cpc_exec(cpc_t* sys, uint32_t micro_seconds) {
+void cpc_exec(cpc_t* sys, uint32_t ticks_to_run) {
     CHIPS_ASSERT(sys && sys->valid);
-    uint32_t ticks_to_run = clk_ticks_to_run(&sys->clk, micro_seconds);
     uint32_t ticks_executed = 0;
     int trap_id = 0;
     while ((ticks_executed < ticks_to_run) && (0 == trap_id)) {
@@ -408,7 +407,7 @@ void cpc_exec(cpc_t* sys, uint32_t micro_seconds) {
         }
     }
     clk_ticks_executed(&sys->clk, ticks_executed);
-    kbd_update(&sys->kbd, micro_seconds);
+    kbd_update(&sys->kbd, ticks_to_run);
 }
 
 void cpc_key_down(cpc_t* sys, int key_code) {

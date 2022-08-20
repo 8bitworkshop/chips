@@ -327,12 +327,11 @@ void zx_reset(zx_t* sys) {
     z80_set_pc(&sys->cpu, 0x0000);
 }
 
-void zx_exec(zx_t* sys, uint32_t micro_seconds) {
+void zx_exec(zx_t* sys, uint32_t ticks_to_run) {
     CHIPS_ASSERT(sys && sys->valid);
-    uint32_t ticks_to_run = clk_ticks_to_run(&sys->clk, micro_seconds);
     uint32_t ticks_executed = z80_exec(&sys->cpu, ticks_to_run);
     clk_ticks_executed(&sys->clk, ticks_executed);
-    kbd_update(&sys->kbd, micro_seconds);
+    kbd_update(&sys->kbd, ticks_to_run);
 }
 
 void zx_key_down(zx_t* sys, int key_code) {

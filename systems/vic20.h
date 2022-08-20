@@ -568,15 +568,14 @@ void vic20_tick(vic20_t* sys) {
     sys->pins = _vic20_tick(sys, sys->pins);
 }
 
-void vic20_exec(vic20_t* sys, uint32_t micro_seconds) {
+void vic20_exec(vic20_t* sys, uint32_t num_ticks) {
     CHIPS_ASSERT(sys && sys->valid);
-    uint32_t num_ticks = clk_us_to_ticks(VIC20_FREQUENCY, micro_seconds);
     uint64_t pins = sys->pins;
     for (uint32_t ticks = 0; ticks < num_ticks; ticks++) {
         pins = _vic20_tick(sys, pins);
     }
     sys->pins = pins;
-    kbd_update(&sys->kbd, micro_seconds);
+    kbd_update(&sys->kbd, ticks_to_run);
 }
 
 static uint16_t _vic20_vic_fetch(uint16_t addr, void* user_data) {
