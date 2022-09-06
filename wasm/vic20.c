@@ -163,3 +163,16 @@ bool machine_cpu_is_stable(vic20_t* sys) {
 int machine_get_raster_line(vic20_t* sys) {
     return sys->vic.rs.v_count;
 }
+
+void* machine_get_debug_pointer(vic20_t* sys, int index) {
+    switch (index) {
+        case 0: return &sys->cpu;
+        case 1: return &sys->via_1;
+        case 2: return &sys->via_2;
+        case 3: return &sys->vic;
+        case 5: return &sys->ram0;
+        case 6: return &sys->color_ram;
+        default: return 0;
+    }
+}
+

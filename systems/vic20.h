@@ -561,6 +561,28 @@ static uint64_t _vic20_tick(vic20_t* sys, uint64_t pins) {
         c1530_tick(&sys->c1530);
     }
 
+    // log probe data
+    if (sys->cpu.brk_flags) logProbe(OP_INTERRUPT | sys->cpu.brk_flags); // interrupt
+    if (pins & M6502_SYNC) logExec(sys->cpu.PC); // exec instruction
+    if ((pins & 0xFC00) != 0x9000) {
+        if (pins & M6502_RW) {
+            logRead(M6502_GET_ADDR(pins), M6502_GET_DATA(pins));
+        } else {
+            logWrite(M6502_GET_ADDR(pins), M6502_GET_DATA(pins));
+        }
+    } else {
+        if (pins & M6502_RW) {
+            logIORead(M6502_GET_ADDR(pins), M6502_GET_DATA(pins));
+        } else {
+            logIOWrite(M6502_GET_ADDR(pins), M6502_GET_DATA(pins));
+        }
+    }
+    logClocks(1);
+    if (sys->vic.rs.h_count == 0) {
+        logNewScanline();
+        if (sys->vic.rs.v_count == 0) logNewFrame();
+    }
+
     return pins;
 }
 
@@ -575,7 +597,7 @@ void vic20_exec(vic20_t* sys, uint32_t num_ticks) {
         pins = _vic20_tick(sys, pins);
     }
     sys->pins = pins;
-    kbd_update(&sys->kbd, ticks_to_run);
+    kbd_update(&sys->kbd, num_ticks);
 }
 
 static uint16_t _vic20_vic_fetch(uint16_t addr, void* user_data) {

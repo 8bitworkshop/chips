@@ -885,7 +885,7 @@ static uint64_t _c64_tick(c64_t* sys, uint64_t pins) {
         }
     }
     // log probe data
-    if (pins & M6502_RDY) logProbe(OP_ILLEGAL | addr); // badline
+    if (pins & M6502_RDY) logProbe(OP_DMA_READ | M6502_GET_DATA(pins)); // badline
     if (sys->cpu.brk_flags) logProbe(OP_INTERRUPT | sys->cpu.brk_flags); // interrupt
     if (pins & M6502_SYNC) logExec(sys->cpu.PC); // exec instruction
     if (mem_access) {

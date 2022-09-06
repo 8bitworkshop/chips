@@ -1,7 +1,7 @@
 
 CLANG="$(EMSDK)/upstream/bin/clang"
 
-testall: c64.test zx.test cpc.test
+testall: c64.test zx.test cpc.test vic20.test
 
 %.test: wasm/%.wasm
 	node --experimental-modules --experimental-wasm-modules wasm/test$*.mjs
