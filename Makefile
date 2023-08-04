@@ -1,6 +1,8 @@
 
 CLANG="$(EMSDK)/upstream/bin/clang"
 
+buildall: wasm/c64.wasm wasm/zx.wasm wasm/cpc.wasm wasm/vic20.wasm
+
 testall: c64.test zx.test cpc.test vic20.test
 
 %.test: wasm/%.wasm
