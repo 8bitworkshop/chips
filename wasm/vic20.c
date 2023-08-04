@@ -144,8 +144,12 @@ void machine_key_up(vic20_t* sys, int key_code) {
 }
 
 void machine_load_rom(vic20_t* sys, const uint8_t* ptr, int num_bytes) {
-    // TODO: vic20_insert_rom_cartridge
-    vic20_quickload(sys, ptr, num_bytes);
+// carts have a 2-byte header
+    if (num_bytes>9+2 && ptr[4+2]==0x41 && ptr[5+2]==0x30 && ptr[6+2]==0xC3 && ptr[7+2]==0xC2 && ptr[8+2]==0xCD) {
+        vic20_insert_rom_cartridge(sys, ptr, num_bytes);
+    } else {
+        vic20_quickload(sys, ptr, num_bytes);
+    }
 }
 
 unsigned int machine_cpu_get_pc(vic20_t* sys) {
