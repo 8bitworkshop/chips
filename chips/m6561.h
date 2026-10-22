@@ -260,6 +260,14 @@ uint32_t m6561_color(int i);
 #define _M6561_VRETRACEPOS  (303)
 #define _M6561_PIXELS_PER_TICK  (4)
 
+/* The VIC-I (6561) displays a 22x23 character window (the VIC-20 text
+   screen). The window size is fixed, only its vertical position is
+   programmable (the "upper border" register R1).
+*/
+#define _M6561_NUM_COLUMNS  (22)
+#define _M6561_NUM_ROWS     (23)
+#define _M6561_ROW_HEIGHT   (8)      /* the VIC-I has no double height text */
+
 #define _M6561_HBORDER (1<<0)
 #define _M6561_VBORDER (1<<1)
 #define _M6561_HVC_DISABLE (1<<0)
@@ -290,6 +298,21 @@ static const uint32_t _m6561_colors[16] = {
     _M6561_RGBA8(0xE5, 0xDE, 0x85)      /* light yellow */
 };
 
+/* The VIC-I display window is 22 columns wide and is centered in the
+   visible area of the CRT. */
+static void _m6561_update_display_window(m6561_t* vic) {
+    const int num_ticks = _M6561_NUM_COLUMNS * 2;  /* each column is 2 ticks */
+    const int margin = (vic->crt.vis_w - num_ticks) / 2;
+    /* The video matrix starts two ticks before the first visible character:
+       one tick to fetch the character code, one tick to fetch its graphics
+       byte. The horizontal border is switched off one tick later, so the
+       first visible pixel of the window is at border.left+2. */
+    vic->border.left = vic->crt.vis_x0 + margin - 2;
+    vic->border.right = vic->border.left + num_ticks;
+    vic->border.top = vic->regs[1];
+    vic->border.bottom = vic->border.top + (_M6561_NUM_ROWS * _M6561_ROW_HEIGHT);
+}
+
 static void _m6561_init_crt(m6561_crt_t* crt, const m6561_desc_t* desc) {
     /* vis area horizontal coords must be multiple of 8 */
     CHIPS_ASSERT((desc->vis_x & 7) == 0);
@@ -308,6 +331,7 @@ void m6561_init(m6561_t* vic, const m6561_desc_t* desc) {
     CHIPS_ASSERT((0 == desc->rgba8_buffer) || (desc->rgba8_buffer_size >= (_M6561_HTOTAL*8*_M6561_VTOTAL*sizeof(uint32_t))));
     memset(vic, 0, sizeof(*vic));
     _m6561_init_crt(&vic->crt, desc);
+    _m6561_update_display_window(vic);
     vic->border.enabled = _M6561_HBORDER|_M6561_VBORDER;
     vic->fetch_cb = desc->fetch_cb;
     vic->user_data = desc->user_data;
@@ -327,6 +351,7 @@ static void _m6561_reset_raster_unit(m6561_t* vic) {
 
 static void _m6561_reset_border_unit(m6561_t* vic) {
     memset(&vic->border, 0, sizeof(vic->border));
+    _m6561_update_display_window(vic);
     vic->border.enabled = _M6561_HBORDER|_M6561_VBORDER;
 }
 
@@ -375,12 +400,13 @@ uint32_t m6561_color(int i) {
 
 /* update precomputed values when disp-related registers changed */
 static void _m6561_regs_dirty(m6561_t* vic) {
-    /* each column is 2 ticks */
-    vic->rs.row_height = (vic->regs[3] & 1) ? 16 : 8;
-    vic->border.left = vic->regs[0] & 0x7F;
-    vic->border.right = vic->border.left + (vic->regs[2] & 0x7F) * 2;
+    /* The horizontal display window is not programmable on the VIC-I, it is
+       set up in _m6561_update_display_window(). The VIC-I has no double
+       height text mode, so all character cells are 8 lines tall. */
+    vic->rs.row_height = _M6561_ROW_HEIGHT;
+    /* the vertical position of the display window (the "upper border") */
     vic->border.top = vic->regs[1];
-    vic->border.bottom = vic->border.top + ((vic->regs[3]>>1) & 0x3F) * vic->rs.row_height;
+    vic->border.bottom = vic->border.top + (_M6561_NUM_ROWS * _M6561_ROW_HEIGHT);
     vic->gunit.inv_color = (vic->regs[15] & 8) == 0;
     vic->gunit.bg_color = _m6561_colors[(vic->regs[15]>>4) & 0xF];
     vic->gunit.brd_color = _m6561_colors[vic->regs[15] & 7];
