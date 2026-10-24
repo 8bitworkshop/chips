@@ -795,7 +795,14 @@ static uint64_t _c64_tick(c64_t* sys, uint64_t pins) {
             cia1_pins |= M6526_FLAG;
         }
         cia1_pins = m6526_tick(&sys->cia_1, cia1_pins);
-        const uint8_t kbd_lines = ~M6526_GET_PA(cia1_pins);
+        /* the keyboard matrix lines are driven by the CIA output latch, not
+           by the external pin level: since the port read model lets a
+           grounded joystick line pull an output pin low, using the raw pins
+           here makes joystick 2 hold a keyboard scan line active (and the
+           IDE feeds arrow keys to both the joystick and the cursor keys).
+           Use the latch for output bits, the pin only for input bits. */
+        const uint8_t pa_out = sys->cia_1.pa.reg | (M6526_GET_PA(cia1_pins) & ~sys->cia_1.pa.ddr);
+        const uint8_t kbd_lines = ~pa_out;
         kbd_set_active_lines(&sys->kbd, kbd_lines);
         if (cia1_pins & M6502_IRQ) {
             pins |= M6502_IRQ;
